@@ -1,91 +1,86 @@
 (ns pyramid.tile
-  (:require [fivetonine.collage.util :as util]
+  (:require [fivetonine.collage.util :as image]
             [fivetonine.collage.core :as collage]
-            [clojure.java.io :as io]))
+            [clojure.java.io :as io]
+            [pyramid.util :as util]))
 
-(def resource-path
-  "/Users/adamjetmalani/code/pyramid/resources")
+
+
+;; --- Math helpers ---
+
+(defn log2 
+  [n]
+  (/ (Math/log n) (Math/log 2)))
 
 (defn ceil
   [n]
-  (if (integer? n)
-    n
-    (let [cast (if (>= n Integer/MAX_VALUE) bigint int)]
-      (cast n))))
+  (if (> n Integer/MAX_VALUE)
+    (bigint (Math/ceil n))
+    (int (Math/ceil n))))
 
-(defn abs
+(defn floor
   [n]
-  (if (pos? n)
-    n
-    (* -1 n)))
+  (dec (ceil n)))
 
-(defn exp
-  [base power]
-  (let [agg (if (neg? power) 
-              (partial / 1)
-              identity)]
-    (agg
-     (reduce
-      *
-      (repeat (abs power) base)))))
 
-(defn tile-dimension
-  [image zoom-level]
-  (let [width (image/width image)
-        height (image/height image)
-        axis-count (exp 2 zoom-level)
-        divide #(ceil (/ % axis-count))]
-    {:width (divide width)
-     :height (divide height)}))
 
-(defn save-image!
-  [image zoom-level row col]
-  (image/save 
-   image 
-   (str resource-path "/tile/tile_" zoom-level "_" row "_" col ".jpg")))
+;; --- Data structure/algorithm ---
 
-(defn get-tile
-  [image {:keys [width height]} row col]
-  (image/sub-image
-   image
-   (* row width) (* col height)
-   width
-   height))
+(defn zoom-depth
+  [{source-width :width} tile-width]
+  (ceil (log2 (/ source-width tile-width))))
 
-;; (defn image-tiling
-;;   [image zoom-level]
-;;   (let [dimension (tile-dimension image zoom-level)
-;;         axis-count (exp 2 zoom-level)]
-;;     (map
-;;      (fn [row]
-;;        (map
-;;         (partial get-tile image dimension row)
-;;         (range axis-count)))
-;;      (range axis-count))))
+(defn side-length
+  [zoom]
+  (int (Math/pow 2 zoom)))
 
-(defn split-image!
-  [image zoom-level]
-  (let [dimension (tile-dimension image zoom-level)
-        axis-count (exp 2 zoom-level)]
-    (mapv
-     (fn [row]
-       (mapv
-        (fn [col]
-          (save-image!
-           (image/resize
-            (get-tile image dimension row col)
-            1280)
-           zoom-level 
-           row 
-           col))
-        (range axis-count)))
-     (range axis-count))
-    nil))
+(defn tile
+  [zoom width height row col]
+  {:zoom zoom
+   :row row
+   :col col
+   :x (* col width)
+   :y (* row height)
+   :width width
+   :height height})
 
-(defn load-image
-  [path]
-  (image/load-image-resource path))
+(defn tiles
+  [{:keys [width height]} zoom]
+  (let [per-side (side-length zoom)
+        tile-width (floor (/ width per-side))
+        tile-height (floor (/ height per-side))]
+    (mapcat
+     #(map
+       (partial tile zoom tile-width tile-height %)
+       (range per-side))
+     (range per-side))))
 
-(defn process
-  [path]
-  ())
+(defn tileset
+  [dimension max-zoom]
+  (mapcat
+   (partial tiles dimension)
+   (range (inc max-zoom))))
+
+
+
+;; --- File system/generators/io ---
+
+(defn make-tile!
+  [source output-width {:keys [x y width height] :as tile}]
+  (let [path (-> tile util/tile-path util/resource-path)]
+    (io/make-parents path)
+    (-> source
+        (collage/crop x y width height)
+        (collage/resize :width output-width)
+        (image/save path))))
+
+(defn make-tiles!
+  ([source-path] (make-tiles! source-path 1280))
+  ([source-path output-width]
+   (let [source (-> source-path util/resource-path image/load-image)
+         source-dimensions {:width (.getWidth source) 
+                            :height (.getHeight source)}
+         max-zoom (zoom-depth source-dimensions output-width)
+         tiles (tileset source-dimensions max-zoom)]
+     (doseq [tile tiles]
+       (make-tile! source output-width tile)))))
