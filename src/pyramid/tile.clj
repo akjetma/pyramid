@@ -56,7 +56,7 @@
     (-> source
         (collage/crop x y width height)
         (collage/resize :width output-width)
-        (image/save path))))
+        (image/save path :quality 1.0))))
 
 (defn make-tiles!
   ([source-path] (make-tiles! source-path 1280))

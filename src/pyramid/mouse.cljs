@@ -1,28 +1,30 @@
-(ns pyramid.mouse)
+(ns pyramid.mouse
+  (:require [pyramid.coordinate :as coordinate]))
 
 (defonce *listeners* (atom {}))
 
-(defn listen!
-  [event-type listener]
-  (swap! *listeners* assoc event-type listener)
-  (.addEventListener js/window event-type listener))
-
 (defn ignore!
   [event-type]
-  (let [listener (get @*listeners* event-type)]
+  (let [listener (get @*listeners* event-type (constantly nil))]
     (swap! *listeners* dissoc event-type)
     (.removeEventListener js/window event-type listener)))
 
+(defn listen!
+  [event-type listener]
+  (ignore! event-type)
+  (swap! *listeners* assoc event-type listener)
+  (.addEventListener js/window event-type listener))
+
 (defn mouse-coords
   [e]
-  {:x (.-pageX e)
-   :y (.-pageY e)})
+  [(.-pageX e)
+   (.-pageY e)])
 
 (defn wrap-move
   [move anchor]
   (fn [e]
     (let [loc (mouse-coords e)
-          distance (merge-with - anchor loc)]
+          distance (coordinate/difference loc anchor)]
       (move distance))))
 
 (defn wrap-up
