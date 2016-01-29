@@ -2,37 +2,16 @@
   (:require [fivetonine.collage.util :as image]
             [fivetonine.collage.core :as collage]
             [clojure.java.io :as io]
-            [pyramid.util :as util]))
-
-
-
-;; --- Math helpers ---
-
-(defn log2 
-  [n]
-  (/ (Math/log n) (Math/log 2)))
-
-(defn ceil
-  [n]
-  (if (> n Integer/MAX_VALUE)
-    (bigint (Math/ceil n))
-    (int (Math/ceil n))))
-
-(defn floor
-  [n]
-  (dec (ceil n)))
-
-
-
-;; --- Data structure/algorithm ---
-
-(defn zoom-depth
-  [{source-width :width} tile-width]
-  (ceil (log2 (/ source-width tile-width))))
+            [pyramid.util :as util]
+            [pyramid.math :as math]))
 
 (defn side-length
   [zoom]
-  (int (Math/pow 2 zoom)))
+  (int (math/pow 2 zoom)))
+
+(defn zoom-depth
+  [{source-width :width} tile-width]
+  (math/ceil (math/log2 (/ source-width tile-width))))
 
 (defn tile
   [zoom width height row col]
@@ -47,8 +26,8 @@
 (defn tiles
   [{:keys [width height]} zoom]
   (let [per-side (side-length zoom)
-        tile-width (floor (/ width per-side))
-        tile-height (floor (/ height per-side))]
+        tile-width (math/floor (/ width per-side))
+        tile-height (math/floor (/ height per-side))]
     (mapcat
      #(map
        (partial tile zoom tile-width tile-height %)
@@ -61,9 +40,14 @@
    (partial tiles dimension)
    (range (inc max-zoom))))
 
-
-
-;; --- File system/generators/io ---
+(defn tiletree
+  [tiles]
+  (reduce
+   (fn 
+     [tree {:keys [zoom row col] :as tile}]
+     (assoc-in tree [zoom row col] tile))
+   {}
+   tiles))
 
 (defn make-tile!
   [source output-width {:keys [x y width height] :as tile}]

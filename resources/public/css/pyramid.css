@@ -1,0 +1,11 @@
+body { 
+    margin: 0;
+}
+
+#grid {
+    
+}
+
+.tile {
+    pointer-events: none;
+}

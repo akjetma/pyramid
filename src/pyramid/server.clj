@@ -3,6 +3,8 @@
             [polaris.core :as polaris]
             [ring.middleware.params :refer [wrap-params]]
             [ring.middleware.keyword-params :refer [wrap-keyword-params]]
+            [ring.middleware.resource :refer [wrap-resource]]
+            [ring.middleware.file-info :refer [wrap-file-info]]
             [ring.util.response :refer [response resource-response content-type]]
             [clojure.data.json :as json]
             [clojure.java.io :as io]
@@ -37,6 +39,14 @@
 
 ;; --- Server/handlers ---
 
+(defn app-handler
+  [_]
+  (-> "public/pyramid.html"
+      io/resource
+      slurp
+      response
+      (content-type "text/html")))
+
 (defn zoom-levels-handler
   [_]
   (-> (zoom-counts)
@@ -52,13 +62,16 @@
       (content-type "image/jpeg")))
 
 (def routes
-  [["/tile" :tile tile-handler]
+  [["/" :app app-handler]
+   ["/tile" :tile tile-handler]
    ["/zoom-levels" :zoom-levels zoom-levels-handler]])
 
 (def router
   (-> routes
       polaris/build-routes
       polaris/router
+      (wrap-resource "public")
+      wrap-file-info
       wrap-keyword-params
       wrap-params))
 
