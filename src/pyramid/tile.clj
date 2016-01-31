@@ -5,6 +5,8 @@
             [pyramid.util :as util]
             [pyramid.math :as math]))
 
+(def default-tile-width 1280)
+
 (defn side-length
   [zoom]
   (int (math/pow 2 zoom)))
@@ -40,18 +42,9 @@
    (partial tiles dimension)
    (range (inc max-zoom))))
 
-(defn tiletree
-  [tiles]
-  (reduce
-   (fn 
-     [tree {:keys [zoom row col] :as tile}]
-     (assoc-in tree [zoom row col] tile))
-   {}
-   tiles))
-
 (defn make-tile!
-  [source output-width {:keys [x y width height] :as tile}]
-  (let [path (-> tile util/tile-path util/resource-path)]
+  [source output-path output-width {:keys [x y width height] :as tile}]
+  (let [path (util/make-path output-path (util/tile-path tile))]
     (io/make-parents path)
     (-> source
         (collage/crop x y width height)
@@ -59,12 +52,13 @@
         (image/save path :quality 1.0))))
 
 (defn make-tiles!
-  ([source-path] (make-tiles! source-path 1280))
-  ([source-path output-width]
-   (let [source (-> source-path util/resource-path image/load-image)
+  ([source-path] (make-tiles! source-path (util/dir source-path)))
+  ([source-path output-path] (make-tiles! source-path output-path default-tile-width))
+  ([source-path output-path output-width]
+   (let [source (image/load-image source-path)
          source-dimensions {:width (.getWidth source) 
                             :height (.getHeight source)}
          max-zoom (zoom-depth source-dimensions output-width)
          tiles (tileset source-dimensions max-zoom)]
      (doseq [tile tiles]
-       (make-tile! source output-width tile)))))
+       (make-tile! source output-path output-width tile)))))

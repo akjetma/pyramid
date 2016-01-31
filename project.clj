@@ -20,15 +20,15 @@
   :cljsbuild {:builds 
               [{:id "dev"
                 :source-paths ["src"]
-                :figwheel {:on-jsload "pyramid.zoom/load"}
-                :compiler {:main pyramid.zoom
+                :figwheel {:on-jsload "pyramid.client/load"}
+                :compiler {:main pyramid.client
                            :asset-path "js/out"
                            :output-to "resources/public/js/pyramid.js"
                            :output-dir "resources/public/js/out"
                            :source-map-timestamp true}}
                {:id "min"
                 :source-paths ["src"]
-                :compiler {:main pyramid.zoom
+                :compiler {:main pyramid.client
                            :output-to "resources/public/js/pyramid.js"
                            :optimizations :advanced
                            :pretty-print false}}]}

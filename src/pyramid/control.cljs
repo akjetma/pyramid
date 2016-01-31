@@ -1,4 +1,4 @@
-(ns pyramid.mouse
+(ns pyramid.control
   (:require [pyramid.coordinate :as coordinate]))
 
 (defonce *listeners* (atom {}))
@@ -20,44 +20,44 @@
   [(.-pageX e)
    (.-pageY e)])
 
-(defn wrap-move
-  [move anchor]
+(defn wrap-mouse-move
+  [mouse-move anchor]
   (fn [e]
     (let [loc (mouse-coords e)
           distance (coordinate/difference loc anchor)]
-      (move distance))))
+      (mouse-move distance))))
 
-(defn wrap-up
-  [on-move up]
+(defn wrap-mouse-up
+  [on-move mouse-up]
   (fn [_]
-    (up)
+    (mouse-up)
     (ignore! "mousemove")
     (ignore! "mouseup")))
 
-(defn wrap-down
-  [{:keys [down move up]}]
+(defn wrap-mouse-down
+  [{:keys [mouse-down mouse-move mouse-up]}]
   (fn [e]
     (let [anchor (mouse-coords e)
-          on-move (wrap-move move anchor)
-          on-up (wrap-up on-move up)]
-      (down)
+          on-move (wrap-mouse-move mouse-move anchor)
+          on-up (wrap-mouse-up on-move mouse-up)]
+      (mouse-down)
       (listen! "mousemove" on-move)
       (listen! "mouseup" on-up))))
 
-(defn wrap-keypress
-  [keypress]
+(defn wrap-key-press
+  [key-press]
   (fn [e]
     (let [code (.-keyCode e)]
-      (keypress code))))
+      (key-press code))))
 
-(defn stop-mouse!
+(defn stop-control!
   []
   (map ignore! ["mousemove" "mouseup" "mousedown" "keypress"]))
 
-(defn start-mouse!
-  [{:keys [keypress] :as callbacks}]
-  (stop-mouse!)
-  (let [on-down (wrap-down callbacks)
-        on-keypress (wrap-keypress keypress)]
-    (listen! "keypress" on-keypress)
-    (listen! "mousedown" on-down)))
+(defn start-control!
+  [{:keys [key-press] :as callbacks}]
+  (stop-control!)
+  (let [on-mouse-down (wrap-mouse-down callbacks)
+        on-key-press (wrap-key-press key-press)]
+    (listen! "keypress" on-key-press)
+    (listen! "mousedown" on-mouse-down)))

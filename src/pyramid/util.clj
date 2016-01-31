@@ -1,19 +1,17 @@
 (ns pyramid.util
   (:require [clojure.string :as string]))
 
-(def resource-root
-  "/Users/adamjetmalani/code/pyramid/resources")
-
-(def tile-root 
+(def tile-root
   "tile")
 
 (defn make-path
   [& parts]
   (string/join "/" parts))
 
-(defn resource-path
+(defn dir
   [path]
-  (make-path resource-root path))
+  (let [parts (string/split path #"/")]
+    (apply make-path (butlast parts))))
 
 (defn zoom-path
   [zoom]

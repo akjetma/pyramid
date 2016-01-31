@@ -1,9 +1,9 @@
-(ns pyramid.zoom
+(ns pyramid.client
   (:require [reagent.core :as reagent]
             [devtools.core :as devtools]
             [ajax.core :as http]
             [pyramid.grid :as grid]
-            [pyramid.mouse :as mouse]
+            [pyramid.control :as control]
             [pyramid.math :as math]
             [pyramid.coordinate :as coordinate]))
 
@@ -75,7 +75,7 @@
   (let [coords (:coords @state)]
     (swap! state assoc :anchor coords)))
 
-(defn keypress!
+(defn key-press!
   [state code]
   (let [{:keys [zoom levels]} @state
         zmax (dec (count levels))
@@ -125,11 +125,11 @@
                 :coords [0 0]})]
     (get-levels! state)    
     (fn []
-      (mouse/start-mouse!
-       {:keypress (partial keypress! state)
-        :down (partial mouse-down! state)
-        :move (partial mouse-move! state)
-        :up (partial mouse-up! state)})
+      (control/start-control!
+       {:key-press (partial key-press! state)
+        :mouse-down (partial mouse-down! state)
+        :mouse-move (partial mouse-move! state)
+        :mouse-up (partial mouse-up! state)})
       (reagent/render-component
        [app state]
        (.-body js/document)))))
