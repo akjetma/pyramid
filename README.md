@@ -34,3 +34,5 @@
 - The mouse and keyboard tracking system takes arbitrary callbacks to be performed when certain events happen. 
 - The mouseMove callback is passed the difference in pixels from where the last mouseDown happened.
 - The keyDown callback is passed the keyCode rather than the event. 
+
+- The problem became a lot simpler when I realized that the meat of the problem involved the translation of points between three coordinate systems: the tile grid, the viewport with respect to the current zoom level, and the mouse position with respect to the viewport.
