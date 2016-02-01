@@ -1,8 +1,7 @@
 (ns pyramid.util
   (:require [clojure.string :as string]))
 
-(def tile-root
-  "tile")
+(def tile-prefix "tile")
 
 (defn make-path
   [& parts]
@@ -15,7 +14,7 @@
 
 (defn zoom-path
   [zoom]
-  (make-path tile-root zoom))
+  (make-path tile-prefix zoom))
 
 (defn row-path
   [zoom row]

@@ -5,11 +5,18 @@
             [ring.middleware.keyword-params :refer [wrap-keyword-params]]
             [ring.middleware.resource :refer [wrap-resource]]
             [ring.middleware.file-info :refer [wrap-file-info]]
-            [ring.util.response :refer [response resource-response content-type]]
+            [ring.util.response :refer [response file-response content-type]]
             [clojure.data.json :as json]
             [clojure.java.io :as io]
-            [pyramid.util :as util]))
+            [pyramid.util :as util]
+            [pyramid.tile :as tile]))
 
+(defonce *image-root*
+  (atom nil))
+
+(defn prefix
+  [path]
+  (util/make-path @*image-root* path))
 
 ;; --- Didn't feel this warranted a separate namespace ---
 
@@ -17,14 +24,16 @@
   [path]
   (remove 
    #(.isHidden %)
-   (.listFiles (io/file (io/resource path)))))
+   (.listFiles (io/file path))))
 
-(def count-files (comp count list-files))
+(defn count-children
+  [path]
+  (count (list-files path)))
 
 (defn zoom-count
   [zoom]
-  {:rows (count-files (util/zoom-path zoom))
-   :cols (count-files (util/row-path zoom 0))})
+  {:rows (count-children (prefix (util/zoom-path zoom)))
+   :cols (count-children (prefix (util/row-path zoom 0)))})
 
 (defn zoom-counts
   []
@@ -33,7 +42,7 @@
    (map
     (juxt str zoom-count)
     (range 
-     (count-files util/tile-root)))))
+     (count-children (prefix util/tile-prefix))))))
 
 
 
@@ -58,7 +67,8 @@
   [{tile :params}]
   (-> tile
       util/tile-path
-      resource-response
+      prefix
+      file-response
       (content-type "image/jpeg")))
 
 (def routes
@@ -93,8 +103,15 @@
     (reset! server server*)))
 
 (defn -main
-  []
-  (start-server))
+  ([image-path] (-main image-path 1024))
+  ([image-path tile-width]
+   (reset! *image-root* (util/dir image-path))
+   (println "splitting image into tiles")
+   (tile/make-tiles! image-path 
+                     @*image-root* 
+                     (Integer. tile-width))
+   (println "image split. starting server.")
+   (start-server)))
 
 
 
