@@ -16,8 +16,8 @@
  :viewport [1280 960]
  :coords [0 0]
  :levels {:0 {:rows 1 :cols 1}
- :1 {:rows 2 :cols 2}
- :2 {:rows 4 :cols 4}}
+          :1 {:rows 2 :cols 2}
+          :2 {:rows 4 :cols 4}}
  :tiles [[2 1 1] [2 1 2] [2 2 1] [2 2 2]]
  :tile-size [1024 78]}
 ```
