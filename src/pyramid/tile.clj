@@ -7,6 +7,12 @@
 
 (def default-tile-width 1280)
 
+(defn init-message
+  [input-path output-path tile-width]
+  (println "tiling " input-path 
+           " into " tile-width "px tiles at " 
+           (util/make-path output-path util/tile-prefix)))
+
 (defn side-length
   [zoom]
   (int (math/pow 2 zoom)))
@@ -55,6 +61,7 @@
   ([source-path] (make-tiles! source-path (util/dir source-path)))
   ([source-path output-path] (make-tiles! source-path output-path default-tile-width))
   ([source-path output-path output-width]
+   (init-message source-path output-path output-width)
    (let [source (image/load-image source-path)
          source-dimensions {:width (.getWidth source) 
                             :height (.getHeight source)}

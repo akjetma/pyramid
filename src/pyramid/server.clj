@@ -8,15 +8,16 @@
             [ring.util.response :refer [response file-response content-type]]
             [clojure.data.json :as json]
             [clojure.java.io :as io]
+            [clojure.java.browse :as browse]
             [pyramid.util :as util]
             [pyramid.tile :as tile]))
 
-(defonce *image-root*
+(defonce image-root
   (atom nil))
 
 (defn prefix
   [path]
-  (util/make-path @*image-root* path))
+  (util/make-path @image-root path))
 
 ;; --- Didn't feel this warranted a separate namespace ---
 
@@ -95,23 +96,22 @@
     (reset! server nil)))
 
 (defn start-server
-  []
-  (stop-server)
-  (let [port (Integer/parseInt (get (System/getenv) "PORT" "5000"))
-        server* (http/run-server #'router {:port port})]
-    (println "server started on port" port)
-    (reset! server server*)))
+  ([] (start-server 5000))
+  ([port]
+   (stop-server)
+   (let [server* (http/run-server #'router {:port port})]
+     (println "server started on port" port)
+     (reset! server server*))))
 
 (defn -main
-  ([image-path] (-main image-path 1024))
+  ([image-path] (-main image-path tile/default-tile-width))
   ([image-path tile-width]
-   (reset! *image-root* (util/dir image-path))
-   (println "splitting image into tiles")
-   (tile/make-tiles! image-path 
-                     @*image-root* 
-                     (Integer. tile-width))
-   (println "image split. starting server.")
-   (start-server)))
+   (let [port (Integer/parseInt (get (System/getenv) "PORT" "5000"))
+         width (Integer/parseInt (str tile-width))]
+     (reset! image-root (util/dir image-path))
+     (tile/make-tiles! image-path @image-root width)
+     (start-server port)
+     (browse/browse-url "http://localhost:5000"))))
 
 
 
