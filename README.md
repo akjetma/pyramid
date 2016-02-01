@@ -10,16 +10,18 @@
 
 - The images comprise a quadtree reaching a depth where the combined tiles create an image of equal or greater magnification of the original image.
 - The client is structured in a way so that the UI is derived from a single map describing the app state that looks like this:
-    ```clojure
-    {:zoom 2 
-     :viewport [1280 960]
-     :coords [0 0]
-     :levels {:0 {:rows 1 :cols 1}
-              :1 {:rows 2 :cols 2}
-              :2 {:rows 4 :cols 4}}
-     :tiles [[2 1 1] [2 1 2] [2 2 1] [2 2 2]]
-     :tile-size [1024 78]}
-     ```
+
+```clojure
+{:zoom 2 
+ :viewport [1280 960]
+ :coords [0 0]
+ :levels {:0 {:rows 1 :cols 1}
+ :1 {:rows 2 :cols 2}
+ :2 {:rows 4 :cols 4}}
+ :tiles [[2 1 1] [2 1 2] [2 2 1] [2 2 2]]
+ :tile-size [1024 78]}
+```
+
 - `:zoom` - Current zoom level
 - `:viewport` - Browser width/height
 - `:coords` - Position of the upper left corner of the viewport with regard to the dimensions of the compiled image at the current zoom level
