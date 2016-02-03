@@ -106,7 +106,7 @@
           61 (min (inc zoom) zmax)
           45 (max (dec zoom) 0)
           nil)]
-    (when (not= new-zoom zoom)
+    (when (and new-zoom (not= new-zoom zoom))
       (zoom! state new-zoom))))
 
 (defn viewport
