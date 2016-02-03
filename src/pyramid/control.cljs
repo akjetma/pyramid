@@ -1,6 +1,16 @@
 (ns pyramid.control
   (:require [pyramid.coordinate :as coordinate]))
 
+;; Provides an interface for click-and-drag mouse behavior (and
+;; keyboard behavior tacked on). I wanted to make sure I could alter
+;; the behaviors of the functions that are called during the lifecycle
+;; of a click-and-drag mouse action without polluting it with logic
+;; about that lifecycle. start-control! is passed a map of callbacks
+;; which are called with context-specific arguments. e.g., rather than
+;; passing the js Event object to the mouse-move callback, it's passed
+;; the distance the mouse has travelled since the mouse-down event 
+;; happened. 
+
 (defonce *listeners* (atom {}))
 
 (defn ignore!

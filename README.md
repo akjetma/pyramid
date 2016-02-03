@@ -5,6 +5,8 @@
 - You'll need leiningen installed. If you're on a mac with homebrew, `brew install leiningen`
 - `lein run [PATH] [WIDTH]` from the root of this project will split the image at `PATH` into `WIDTH` px wide tiles and place them alongside the image at `PATH` into `tile/[zoom]/[row]/[col]`, then start a server and open your browser to the viewing client.
 - You can also just split an image into tiles with `lein run -m pyramid.sh-tile [PATH] [WIDTH]`
+- I've pushed the compiled, minified client code for ease of use, but if you want to check out the dev build w/ source-maps: `lein do clean, cljsbuild once`
+- Click and drag your mouse to pan the image, -/+ on your keyboard to zoom.
 
 ## Random Notes
 

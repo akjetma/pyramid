@@ -1,5 +1,12 @@
 (ns pyramid.math)
 
+;; Clojure and ClojureScript rely on their compile targets' math
+;; librarys. I like to create a math namespace that provides 
+;; consistently named functions and syntax for frequently used
+;; operations. This file is readable by both the Clojure and 
+;; ClojureScript compilers using the cljc (Clojure conditional
+;; reader) macros.
+
 (defn log2
   [n]
   #?(:clj (/ (Math/log n) (Math/log 2))
